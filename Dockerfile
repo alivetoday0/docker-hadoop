@@ -1,12 +1,14 @@
 FROM alivetoday0/ubuntu-ssh-java11
 
+RUN apt install -y curl
 RUN mkdir /var/log/hadoop
 
 ENV HADOOP_VERSION=2.10.1
 ENV HADOOP_DOWNLOAD_URL=https://downloads.apache.org/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
 
-COPY file/hadoop-2.10.1.tar.gz /tmp/hadoop.tar.gz
-RUN tar -xvf /tmp/hadoop.tar.gz -C /opt/ \
+# COPY file/hadoop-2.10.1.tar.gz /tmp/hadoop.tar.gz
+RUN curl -fSL "$HADOOP_DOWNLOAD_URL" -o /tmp/hadoop.tar.gz \
+    && tar -xvf /tmp/hadoop.tar.gz -C /opt/ \
     && rm /tmp/hadoop.tar.gz \
     && ln -s /opt/hadoop-$HADOOP_VERSION /opt/hadoop \
     && mkdir -p /opt/hadoop/dfs/master \
