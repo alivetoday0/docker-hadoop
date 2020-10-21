@@ -1,0 +1,86 @@
+version: "3"
+
+x-hadoop_base: &hadoop_base
+    image: hadoop-base:0.1
+
+
+services:
+    master:
+        <<: *hadoop_base
+        container_name: master
+        hostname: master
+        ports:
+            - "50070:50070"
+            - "9000:9000"
+        networks:
+            hadoop_net:
+                ipv4_address: 172.16.238.10
+        extra_hosts:
+            - "slave01:172.16.238.11"
+            - "slave02:172.16.238.12"
+            - "slave03:172.16.238.13"
+        command: /root/wait-for-ssh.sh
+
+    slave01:
+        <<: *hadoop_base
+        container_name: slave01
+        hostname: slave01
+        volumes: 
+            - datanode01:/opt/hadoop/dfs/data
+        extra_hosts:
+            - "master:172.16.238.10"
+            - "slave02:172.16.238.12"
+            - "slave03:172.16.238.13"
+        links:
+            - master
+        networks:
+            hadoop_net:
+                ipv4_address: 172.16.238.11
+        command: /root/wait-for-ssh.sh
+        
+    slave02:
+        <<: *hadoop_base
+        container_name: slave02
+        hostname: slave02
+        volumes: 
+            - datanode02:/opt/hadoop/dfs/data
+        extra_hosts:
+            - "master:172.16.238.10"
+            - "slave01:172.16.238.11"
+            - "slave03:172.16.238.13"
+        links:
+            - master
+        networks:
+            hadoop_net:
+                ipv4_address: 172.16.238.12
+        command: /root/wait-for-ssh.sh
+
+    slave03:
+        <<: *hadoop_base
+        container_name: slave03
+        hostname: slave03
+        volumes: 
+            - datanode03:/opt/hadoop/dfs/data
+        extra_hosts:
+            - "master:172.16.238.10"
+            - "slave01:172.16.238.11"
+            - "slave02:172.16.238.12"
+        links:
+            - master
+        networks:
+            hadoop_net:
+                ipv4_address: 172.16.238.13
+        command: /root/wait-for-ssh.sh
+
+networks:
+    hadoop_net:
+        ipam: 
+            driver: default
+            config:
+                - subnet: "172.16.238.0/24"
+
+volumes:
+    namenode:
+    datanode01:
+    datanode02:
+    datanode03:
