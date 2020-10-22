@@ -1,7 +1,7 @@
 version: "3"
 
 x-hadoop_base: &hadoop_base
-    image: hadoop-base:0.1
+    image: hadoop-spark:1.0
 
 
 services:
@@ -12,6 +12,7 @@ services:
         ports:
             - "50070:50070"
             - "9000:9000"
+            - "28080:8080"
         networks:
             hadoop_net:
                 ipv4_address: 172.16.238.10
@@ -25,7 +26,7 @@ services:
         <<: *hadoop_base
         container_name: slave01
         hostname: slave01
-        volumes: 
+        volumes:
             - datanode01:/opt/hadoop/dfs/data
         extra_hosts:
             - "master:172.16.238.10"
@@ -37,12 +38,12 @@ services:
             hadoop_net:
                 ipv4_address: 172.16.238.11
         command: /root/wait-for-ssh.sh
-        
+
     slave02:
         <<: *hadoop_base
         container_name: slave02
         hostname: slave02
-        volumes: 
+        volumes:
             - datanode02:/opt/hadoop/dfs/data
         extra_hosts:
             - "master:172.16.238.10"
@@ -59,7 +60,7 @@ services:
         <<: *hadoop_base
         container_name: slave03
         hostname: slave03
-        volumes: 
+        volumes:
             - datanode03:/opt/hadoop/dfs/data
         extra_hosts:
             - "master:172.16.238.10"
@@ -74,7 +75,7 @@ services:
 
 networks:
     hadoop_net:
-        ipam: 
+        ipam:
             driver: default
             config:
                 - subnet: "172.16.238.0/24"
