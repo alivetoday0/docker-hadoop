@@ -63,5 +63,5 @@ RUN chmod 755 ~/healthcheck-ssh.sh \
   && echo "export JAVA_HOME=$JAVA_HOME" >> $SPARK_CONF_HOME/spark-env.sh \
   && chmod 755 $SPARK_CONF_HOME/spark-env.sh
 
-EXPOSE 50070 9000 50075 50010 8032 8031
+EXPOSE 50070 9000 50075 50010
 EXPOSE 8080 18080 7077
