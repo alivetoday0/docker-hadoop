@@ -3,6 +3,6 @@
 <configuration>
 	<property>
 		<name>mapred.job.tracker</name>
-		<value>master</value>
+		<value>yarn</value>
 	</property>
 </configuration>

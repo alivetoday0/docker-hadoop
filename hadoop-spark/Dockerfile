@@ -18,7 +18,7 @@ RUN curl -fSL "$HADOOP_DOWNLOAD_URL" -o /tmp/hadoop.tar.gz \
   && mkdir -p /opt/hadoop/dfs/slave \
   && mkdir /opt/hadoop/logs \
   && ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop \
-  && rm -rf /opt/hadoop/share/doc
+  && rm -rf /opt/hadoop/share/doc \
   && curl -fSL "$SPARK_DOWNLOAD_URL" -o /tmp/spark.tgz \
   && tar -xvf /tmp/spark.tgz -C /opt/ \
   && rm /tmp/spark.tgz \
@@ -29,7 +29,7 @@ RUN curl -fSL "$HADOOP_DOWNLOAD_URL" -o /tmp/hadoop.tar.gz \
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 
 ENV HADOOP_HOME /opt/hadoop
-ENV HADOOP_CONF_HOME /etc/hadoop
+ENV HADOOP_CONF_DIR /etc/hadoop
 ENV PATH $HADOOP_HOME/bin/:$PATH
 
 ENV SPARK_HOME /opt/spark
@@ -38,11 +38,11 @@ ENV LD_LIBRARY_PATH $HADOOP_HOME/lib/native:$LD_LIBRARY_PATH
 ENV PATH $PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
 
 # add configuration file from host
-ADD config/core-site.xml $HADOOP_CONF_HOME
-ADD config/hdfs-site.xml $HADOOP_CONF_HOME
-ADD config/mapred-site.xml $HADOOP_CONF_HOME
-ADD config/slaves $HADOOP_CONF_HOME
-
+ADD config/core-site.xml $HADOOP_CONF_DIR
+ADD config/hdfs-site.xml $HADOOP_CONF_DIR
+ADD config/mapred-site.xml $HADOOP_CONF_DIR
+ADD config/slaves $HADOOP_CONF_DIR
+ADD config/yarn-site.xml $HADOOP_CONF_DIR
 ADD config/slaves $SPARK_CONF_HOME
 
 ADD script/healthcheck-ssh.sh /root/
@@ -51,15 +51,17 @@ ADD script/wait-for-ssh.sh /root/
 # execute command
 RUN chmod 755 ~/healthcheck-ssh.sh \
   && chmod 755 ~/wait-for-ssh.sh \
-  && sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64:' $HADOOP_CONF_HOME/hadoop-env.sh \
+  && sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64:' $HADOOP_CONF_DIR/hadoop-env.sh \
   && cp $SPARK_CONF_HOME/spark-defaults.conf.template $SPARK_CONF_HOME/spark-defaults.conf \
   && sed -i '/#[ ]*spark.master/ s:.*:spark.master yarn:' $SPARK_CONF_HOME/spark-defaults.conf \
   && sed -i '/#[ ]*spark.eventLog.enabled/ s:.*:spark.eventLog.enabled true:' $SPARK_CONF_HOME/spark-defaults.conf \
-  && echo "spark.eventLog.dir hdfs://master:9000/spark/shared-logs/" $SPARK_CONF_HOME/spark-defaults.conf \
+  && echo "spark.eventLog.dir hdfs://master:9000/spark/shared-logs/" >> $SPARK_CONF_HOME/spark-defaults.conf \
+  && touch $SPARK_CONF_HOME/spark-env.sh \
+  && echo "export HADDOP_CONF_DIR=$HADOOP_CONF_DIR" >> $SPARK_CONF_HOME/spark-env.sh \
   && echo "export SPARK_DIST_CLASSPATH=$(/opt/hadoop/bin/hadoop classpath)" >> $SPARK_CONF_HOME/spark-env.sh \
-  && echo "export HADOOP_CONF_DIR=$HADOOP_CONF_HOME" >> $SPARK_CONF_HOME/spark-env.sh \
   && echo "export SPARK_CLASSPATH=$SPARK_HOME/jars" >> $SPARK_CONF_HOME/spark-env.sh \
-  && echo "export JAVA_HOME=$JAVA_HOME" >> $SPARK_CONF_HOME/spark-env.sh
+  && echo "export JAVA_HOME=$JAVA_HOME" >> $SPARK_CONF_HOME/spark-env.sh \
+  && chmod 755 $SPARK_CONF_HOME/spark-env.sh
 
-EXPOSE 50070 9000 50075 50010
+EXPOSE 50070 9000 50075 50010 8032 8031
 EXPOSE 8080 18080 7077

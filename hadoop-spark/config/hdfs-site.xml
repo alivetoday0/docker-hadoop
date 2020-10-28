@@ -5,7 +5,6 @@
 		<name>dfs.replication</name>
 		<value>2</value>
 	</property>
-
 	<property>
 		<name>dfs.namenode.name.dir</name>
 		<value>file:///opt/hadoop/dfs/master</value>

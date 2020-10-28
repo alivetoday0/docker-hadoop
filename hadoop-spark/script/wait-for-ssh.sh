@@ -19,12 +19,13 @@ done
 
 if [ "$HOSTNAME" == "master" ]; then
         echo "I'm a namenode"
-        $HADOOP_HOME/bin/hdfs namenode -format matser \
+        $HADOOP_HOME/bin/hdfs namenode -format master \
         && $HADOOP_HOME/sbin/start-dfs.sh \
         && $HADOOP_HOME/sbin/start-yarn.sh \
-        && $HADOOP_HOME/sbin/mr-jobhistory-daemon.sh --config $HADOOP_CONF_HOME start historyserver \
+        && $HADOOP_HOME/sbin/mr-jobhistory-daemon.sh --config $HADOOP_CONF_DIR start historyserver \
         && hadoop fs -mkdir /spark/ \
         && hadoop fs -mkdir /spark/shared-logs/
+        # && $SPARK_HOME/sbin/start-all.sh
 else
         echo "I'm a datanode"
         sleep 30

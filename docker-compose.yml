@@ -2,7 +2,11 @@ version: "3"
 
 x-hadoop_base: &hadoop_base
     image: hadoop-spark:1.0
-
+    deploy:
+        resources:
+            limits:
+                cpus: "0.25"
+                memory: 512M
 
 services:
     master:
@@ -12,7 +16,8 @@ services:
         ports:
             - "50070:50070"
             - "9000:9000"
-            - "28080:8080"
+            - "28080:8080" # spark
+            - "28088:8088" # yarn
         networks:
             hadoop_net:
                 ipv4_address: 172.16.238.10
@@ -20,6 +25,7 @@ services:
             - "slave01:172.16.238.11"
             - "slave02:172.16.238.12"
             - "slave03:172.16.238.13"
+
         command: /root/wait-for-ssh.sh
 
     slave01:
